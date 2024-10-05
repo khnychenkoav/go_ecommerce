@@ -42,6 +42,7 @@ func main() {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
+	jwtSecret := os.Getenv("JWT_SECRET")
 
 	// Формирование строки подключения (DSN)
 	dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + " dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=UTC"
@@ -53,14 +54,14 @@ func main() {
 	}
 
 	// Миграция схемы
-	if err := db.AutoMigrate(&models.Product{}); err != nil {
+	if err := models.RunMigrations(db); err != nil {
 		log.Fatalf("Ошибка миграции базы данных: %v", err)
 	}
 
 	router := gin.Default()
 
 	// Настройка маршрутов с использованием базы данных
-	handlers.SetupRoutes(router, db)
+	handlers.SetupRoutes(router, db, jwtSecret)
 
 	// Настройка маршрута Swagger
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
